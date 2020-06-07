@@ -7,10 +7,10 @@ import os
 from bs4 import BeautifulSoup
 
 now = time.strftime("%Y-%m-%d==%H-%M-%S", time.localtime())
-resultDir = 'result/' + now
+resultDir = 'result/banner/' + now
 sourceDir = 'source/'
-is_append_http_prefix = False
-timeout = 5
+# is_append_http_prefix = False
+timeout = 7
 threads_count = 20
 thread_urls_count = 0
 yu = 0
@@ -25,35 +25,35 @@ def send(url_line):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
         }
         r = requests.get(url, allow_redirects=True, timeout=timeout, headers=headers)  # 去除ssl验证
+
+        # r.encoding = 'utf8'
         # r = requests.get(url, verify=False, allow_redirects=True, timeout=3)
         print('status_code>>>' + str(r.status_code))
 
         if r.status_code != 200:
             # print('fail1')
-            fail.write(('http://' if is_append_http_prefix else '') + url + '\n')
+            fail.write(url + '\n')
         else:
             bs = BeautifulSoup(r.text, 'html.parser')
-            http_equiv = bs.find(attrs={"http-equiv": "refresh"})
-            if http_equiv is not None:
-                content = http_equiv['content']
-                url_word_index = 0
-                if content.find('url') != -1:
-                    url_word_index = content.find('url')
-                else:
-                    url_word_index = content.find('URL')
-                refresh_url = content[url_word_index + 4:]
-                print('content:' + content)
-                print('refresh_url:' + refresh_url)
-                if refresh_url.find('http') != -1:
-                    send(refresh_url)
-                else:
-                    send(url + '/' + refresh_url)
+            # print(bs.contents)
+            content_type = bs.find(attrs={"http-equiv": "Content-Type"})
+            if content_type is not None:
+                content_type = content_type['content']
+                charset = content_type[content_type.find('charset') + 8:]
+                if charset != 'utf8':
+                    r.encoding = charset
+                    bs = BeautifulSoup(r.text, 'html.parser')
+            title = bs.title
+            if title is not None:
+                title = title.text
             else:
-                # print('ok')
-                ok.write(('http://' if is_append_http_prefix else '') + url + '\n')
-    except:
-        # print('fail2')
-        fail.write(('http://' if is_append_http_prefix else '') + url + '\n')
+               raise Exception
+            print(title)
+            ok.write(url + '                ' + title + '\n')
+    except Exception as e:
+        print(e)
+        print('fail2')
+        fail.write(url + '\n')
 
 
 # 具体做啥事,写在函数中
