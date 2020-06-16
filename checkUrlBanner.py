@@ -22,10 +22,18 @@ def send(url_line):
     try:
         print('url>>>' + url)
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9',
+            'Cache-Control': 'max-age=0',
+            'DNT': '1',
+            'Proxy-Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36'
         }
-        r = requests.get(url, allow_redirects=True, timeout=timeout, headers=headers)  # 去除ssl验证
-
+        # r = requests.get(url, allow_redirects=True, timeout=timeout, headers=headers)  # 去除ssl验证
+        r = requests.get(url, allow_redirects=True)  # 去除ssl验证
+        print(r.url)
         # r.encoding = 'utf8'
         # r = requests.get(url, verify=False, allow_redirects=True, timeout=3)
         print('status_code>>>' + str(r.status_code))
@@ -34,6 +42,7 @@ def send(url_line):
             # print('fail1')
             fail.write(url + '\n')
         else:
+            # print(r.text)
             bs = BeautifulSoup(r.text, 'html.parser')
             # print(bs.contents)
             content_type = bs.find(attrs={"http-equiv": "Content-Type"})
@@ -46,10 +55,15 @@ def send(url_line):
             title = bs.title
             if title is not None:
                 title = title.text
+                if title == '':
+                    title = '无名或解析失败'
+                    error.write(url + '                ' + title + '\n')
+                else:
+                    ok.write(url + '                ' + title + '\n')
             else:
-               raise Exception
+                title = '无名或解析失败'
+                error.write(url + '                ' + title + '\n')
             print(title)
-            ok.write(url + '                ' + title + '\n')
     except Exception as e:
         print(e)
         print('fail2')
@@ -99,6 +113,7 @@ if __name__ == '__main__':
     check_file = open("source/url.txt", 'r')
     ok = open(resultDir + '/okUrls.txt', 'w', encoding='utf-8')
     fail = open(resultDir + '/failUrls.txt', 'w', encoding='utf-8')
+    error = open(resultDir + '/errorUrls.txt', 'w', encoding='utf-8')
 
     not_check_urls = check_file.readlines()
     not_check_urls_len = len(not_check_urls)

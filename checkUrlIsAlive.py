@@ -11,7 +11,7 @@ resultDir = 'result/alive/' + now
 sourceDir = 'source/'
 is_append_http_prefix = False
 timeout = 5
-threads_count = 20
+threads_count = 30
 thread_urls_count = 0
 yu = 0
 request_count = {}
@@ -47,7 +47,7 @@ def send(url_line):
 
         if r.status_code != 200:
             # print('fail1')
-            fail.write(('http://' if is_append_http_prefix else '') + url + '\n')
+            fail.write(('https://' if is_append_http_prefix else '') + url + '\n')
         else:
             bs = BeautifulSoup(r.text, 'html.parser')
             # print(bs.contents)
@@ -72,8 +72,9 @@ def send(url_line):
             else:
                 # print('ok')
                 ok.write(('http://' if is_append_http_prefix else '') + url + '\n')
-    except:
+    except Exception as e:
         print('fail2')
+        print(e)
         fail.write(('http://' if is_append_http_prefix else '') + url + '\n')
 
 
